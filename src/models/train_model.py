@@ -79,8 +79,7 @@ def train_model(
         "report": classification_report(y_test, y_pred, output_dict=True)
     }
 
-    return model, metrics
-
+    return model, metrics, X_train, X_test, y_train, y_test
 
 def save_model(
     model,
