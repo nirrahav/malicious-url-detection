@@ -63,9 +63,11 @@ def train_model(
     )
 
     model = RandomForestClassifier(
-        n_estimators=100,
+        n_estimators=30,
+        max_depth=20,
         n_jobs=-1,
-        random_state=random_state
+        random_state=42,
+        class_weight="balanced"
     )
 
     model.fit(X_train, y_train)
