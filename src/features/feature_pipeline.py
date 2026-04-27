@@ -68,16 +68,9 @@ def extract_char_tfidf_features(
     vectorizer = get_char_tfidf_vectorizer(max_features=max_features)
 
     matrix = vectorizer.fit_transform(df[url_column].astype(str))
-    feature_names = [f"char_tfidf_{name}" for name in vectorizer.get_feature_names_out()]
 
-    features_df = pd.DataFrame(
-        matrix.toarray(),
-        columns=feature_names,
-        index=df.index
-    )
 
-    return features_df, vectorizer
-
+    return matrix, vectorizer
 
 def extract_token_tfidf_features(
     df: pd.DataFrame,
@@ -88,12 +81,6 @@ def extract_token_tfidf_features(
     vectorizer = get_token_tfidf_vectorizer(max_features=max_features)
 
     matrix = vectorizer.fit_transform(df[url_column].astype(str))
-    feature_names = [f"token_tfidf_{name}" for name in vectorizer.get_feature_names_out()]
 
-    features_df = pd.DataFrame(
-        matrix.toarray(),
-        columns=feature_names,
-        index=df.index
-    )
 
-    return features_df, vectorizer
+    return matrix, vectorizer
