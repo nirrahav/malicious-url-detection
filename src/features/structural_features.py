@@ -1,4 +1,6 @@
+import math
 import re
+from collections import Counter
 from urllib.parse import urlparse
 
 
@@ -214,12 +216,93 @@ def has_hyphen_in_domain(url: str) -> int:
     return int("-" in parsed_url.netloc)
 
 
+def get_path_depth(url: str) -> int:
+    """Returns the depth of the URL path."""
+    parsed_url = safe_urlparse(url)
+
+    if parsed_url is None or not parsed_url.path:
+        return 0
+
+    path_parts = [part for part in parsed_url.path.split("/") if part]
+    return len(path_parts)
+
+
+def tokenize_url(url: str) -> list[str]:
+    """Splits a URL string into meaningful tokens."""
+    url = str(url).lower()
+    tokens = re.split(r"[./\-?_=&:%]+", url)
+    return [token for token in tokens if token]
+
+
+def get_num_tokens(url: str) -> int:
+    """Returns the number of tokens in the URL."""
+    return len(tokenize_url(url))
+
+
+def get_longest_token_length(url: str) -> int:
+    """Returns the length of the longest token in the URL."""
+    tokens = tokenize_url(url)
+    return max((len(token) for token in tokens), default=0)
+
+
+def get_avg_token_length(url: str) -> float:
+    """Returns the average token length in the URL."""
+    tokens = tokenize_url(url)
+
+    if not tokens:
+        return 0.0
+
+    return sum(len(token) for token in tokens) / len(tokens)
+
+
+def get_domain_letter_ratio(url: str) -> float:
+    """Returns the ratio of alphabetic characters in the domain."""
+    parsed_url = safe_urlparse(url)
+
+    if parsed_url is None or not parsed_url.netloc:
+        return 0.0
+
+    domain = parsed_url.netloc
+
+    if len(domain) == 0:
+        return 0.0
+
+    num_letters = sum(char.isalpha() for char in domain)
+    return num_letters / len(domain)
+
+
+def has_url_encoding(url: str) -> int:
+    """Returns 1 if the URL contains URL encoding, otherwise 0."""
+    return int("%" in str(url))
+
+
+def get_entropy(url: str) -> float:
+    """
+    Calculates the Shannon entropy of the URL.
+
+    Higher entropy may indicate more random-looking URLs.
+    """
+    url = str(url)
+
+    if len(url) == 0:
+        return 0.0
+
+    counts = Counter(url)
+    probabilities = [count / len(url) for count in counts.values()]
+
+    return -sum(probability * math.log2(probability) for probability in probabilities)
+
+
 def extract_features(url: str) -> dict:
     """
-    Extracts all URL features into a single dictionary.
+    Extracts all structural URL features into a single dictionary.
     """
     return {
         "url_length": get_url_length(url),
+        "domain_length": get_domain_length(url),
+        "path_length": get_path_length(url),
+        "query_length": get_query_length(url),
+
         "num_dots": get_num_dots(url),
         "num_hyphens": get_num_hyphens(url),
         "num_underscores": get_num_underscores(url),
@@ -233,10 +316,6 @@ def extract_features(url: str) -> dict:
         "digit_ratio": get_digit_ratio(url),
         "special_char_ratio": get_special_char_ratio(url),
 
-        "domain_length": get_domain_length(url),
-        "path_length": get_path_length(url),
-        "query_length": get_query_length(url),
-
         "has_https": has_https(url),
         "has_http": has_http(url),
         "has_ip_address": has_ip_address(url),
@@ -246,4 +325,12 @@ def extract_features(url: str) -> dict:
         "num_query_params": get_num_query_params(url),
         "domain_digit_ratio": get_domain_digit_ratio(url),
         "has_hyphen_in_domain": has_hyphen_in_domain(url),
+
+        "path_depth": get_path_depth(url),
+        "num_tokens": get_num_tokens(url),
+        "longest_token_length": get_longest_token_length(url),
+        "avg_token_length": get_avg_token_length(url),
+        "domain_letter_ratio": get_domain_letter_ratio(url),
+        "has_url_encoding": has_url_encoding(url),
+        "entropy": get_entropy(url),
     }
