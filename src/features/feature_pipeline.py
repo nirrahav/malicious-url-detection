@@ -18,6 +18,11 @@ from src.features.structural_features import (
     get_special_char_ratio,
 )
 
+from src.features.nlp_features import (
+    get_char_tfidf_vectorizer,
+    get_token_tfidf_vectorizer,
+)
+
 
 def extract_basic_features(df: pd.DataFrame, url_column: str = "url") -> pd.DataFrame:
     """
@@ -52,3 +57,43 @@ def extract_basic_features(df: pd.DataFrame, url_column: str = "url") -> pd.Data
     features_df["special_char_ratio"] = df[url_column].apply(get_special_char_ratio)
 
     return features_df
+
+
+def extract_char_tfidf_features(
+    df: pd.DataFrame,
+    url_column: str = "url",
+    max_features: int = 5000
+) -> tuple[pd.DataFrame, object]:
+    """Extracts character-level TF-IDF features from URLs."""
+    vectorizer = get_char_tfidf_vectorizer(max_features=max_features)
+
+    matrix = vectorizer.fit_transform(df[url_column].astype(str))
+    feature_names = [f"char_tfidf_{name}" for name in vectorizer.get_feature_names_out()]
+
+    features_df = pd.DataFrame(
+        matrix.toarray(),
+        columns=feature_names,
+        index=df.index
+    )
+
+    return features_df, vectorizer
+
+
+def extract_token_tfidf_features(
+    df: pd.DataFrame,
+    url_column: str = "url",
+    max_features: int = 3000
+) -> tuple[pd.DataFrame, object]:
+    """Extracts token-level TF-IDF features from URLs."""
+    vectorizer = get_token_tfidf_vectorizer(max_features=max_features)
+
+    matrix = vectorizer.fit_transform(df[url_column].astype(str))
+    feature_names = [f"token_tfidf_{name}" for name in vectorizer.get_feature_names_out()]
+
+    features_df = pd.DataFrame(
+        matrix.toarray(),
+        columns=feature_names,
+        index=df.index
+    )
+
+    return features_df, vectorizer
