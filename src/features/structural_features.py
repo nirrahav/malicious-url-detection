@@ -1,5 +1,23 @@
 from urllib.parse import urlparse
 
+def safe_urlparse(url: str):
+    """
+    Safely parses a URL.
+    If parsing fails, tries to parse it with http:// prefix.
+    If it still fails, returns None.
+    """
+    try:
+        parsed_url = urlparse(url)
+
+        if not parsed_url.netloc:
+            parsed_url = urlparse("http://" + url)
+
+        return parsed_url
+
+    except ValueError:
+        return None
+    
+
 
 def get_url_length(url: str) -> int:
     """Returns the total length of the URL."""
@@ -70,34 +88,29 @@ def get_special_char_ratio(url: str) -> float:
 
 def get_domain_length(url: str) -> int:
     """Returns the length of the URL domain."""
-    parsed_url = urlparse(url)
+    parsed_url = safe_urlparse(url)
 
-    domain = parsed_url.netloc
+    if parsed_url is None:
+        return 0
 
-    # Handles URLs without scheme, e.g. "example.com/path"
-    if not domain:
-        domain = urlparse("http://" + url).netloc
-
-    return len(domain)
+    return len(parsed_url.netloc)
 
 
 def get_path_length(url: str) -> int:
     """Returns the length of the URL path."""
-    parsed_url = urlparse(url)
+    parsed_url = safe_urlparse(url)
 
-    # Handles URLs without scheme
-    if not parsed_url.netloc:
-        parsed_url = urlparse("http://" + url)
+    if parsed_url is None:
+        return 0
 
     return len(parsed_url.path)
 
 
 def get_query_length(url: str) -> int:
     """Returns the length of the URL query string."""
-    parsed_url = urlparse(url)
+    parsed_url = safe_urlparse(url)
 
-    # Handles URLs without scheme
-    if not parsed_url.netloc:
-        parsed_url = urlparse("http://" + url)
+    if parsed_url is None:
+        return 0
 
     return len(parsed_url.query)
