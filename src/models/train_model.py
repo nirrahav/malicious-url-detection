@@ -21,6 +21,7 @@ def prepare_features(
     X_struct,
     X_char,
     X_token,
+    scaler=None,
     scale_struct: bool = True
 ):
     """
@@ -30,6 +31,7 @@ def prepare_features(
         X_struct (pd.DataFrame): Structural features.
         X_char (sparse matrix): Character TF-IDF features.
         X_token (sparse matrix): Token TF-IDF features.
+        scaler: Optional fitted StandardScaler.
         scale_struct (bool): Whether to apply StandardScaler to structural features.
 
     Returns:
@@ -37,11 +39,12 @@ def prepare_features(
         scaler (optional): Fitted scaler if used.
     """
 
-    scaler = None
-
     if scale_struct:
-        scaler = StandardScaler()
-        X_struct_scaled = scaler.fit_transform(X_struct)
+        if scaler is None:
+            scaler = StandardScaler()
+            X_struct_scaled = scaler.fit_transform(X_struct)
+        else:
+            X_struct_scaled = scaler.transform(X_struct)
     else:
         X_struct_scaled = X_struct.values
 
@@ -151,9 +154,26 @@ def train_model_with_validation(
     X_token_test = transform_token_tfidf_features(df_test, token_vectorizer, url_column)
 
     # Prepare features
-    X_train, scaler = prepare_features(X_struct_train, X_char_train, X_token_train, scale_struct)
-    X_val, _ = prepare_features(X_struct_val, X_char_val, X_token_val, scale_struct)
-    X_test_final, _ = prepare_features(X_struct_test, X_char_test, X_token_test, scale_struct)
+    X_train, scaler = prepare_features(
+        X_struct_train,
+        X_char_train,
+        X_token_train,
+        scale_struct=scale_struct,
+    )
+    X_val, _ = prepare_features(
+        X_struct_val,
+        X_char_val,
+        X_token_val,
+        scaler=scaler,
+        scale_struct=scale_struct,
+    )
+    X_test_final, _ = prepare_features(
+        X_struct_test,
+        X_char_test,
+        X_token_test,
+        scaler=scaler,
+        scale_struct=scale_struct,
+    )
 
     # Get labels
     y_train = df_train[label_column].values
