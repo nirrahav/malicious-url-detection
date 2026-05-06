@@ -8,6 +8,8 @@ from sklearn.model_selection import train_test_split
 from sklearn.metrics import classification_report, accuracy_score
 from sklearn.preprocessing import StandardScaler
 
+
+
 from src.features.feature_pipeline import (
     extract_basic_features,
     fit_char_tfidf_vectorizer,
@@ -242,31 +244,84 @@ def train_model_with_validation(
     return model, scaler, vectorizers, metrics
 
 
-def save_model(
-    model,
-    scaler=None,
-    vectorizers=None,
-    model_path: str = "outputs/models/model.pkl",
-    scaler_path: str = "outputs/models/scaler.pkl",
-    char_vectorizer_path: str = "outputs/models/char_vectorizer.pkl",
-    token_vectorizer_path: str = "outputs/models/token_vectorizer.pkl"
+
+
+def train_structural_baseline(
+    df,
+    url_col="url",
+    label_col="type",
+    test_size=0.2,
+    val_size=0.2,
+    random_state=42
 ):
     """
-    Saves the trained model, scaler, and vectorizers.
-
-    Args:
-        model: Trained model
-        scaler: Fitted scaler (optional)
-        vectorizers: Dict with fitted vectorizers (optional)
+    Trains a baseline model using only structural/numeric URL features.
     """
 
-    joblib.dump(model, model_path)
+    X = df.drop(columns=[url_col, label_col], errors="ignore")
+    X = X.select_dtypes(include="number")
 
-    if scaler is not None:
-        joblib.dump(scaler, scaler_path)
+    y = df[label_col]
 
-    if vectorizers is not None:
-        if "char" in vectorizers:
-            joblib.dump(vectorizers["char"], char_vectorizer_path)
-        if "token" in vectorizers:
-            joblib.dump(vectorizers["token"], token_vectorizer_path)
+    X_train_val, X_test, y_train_val, y_test = train_test_split(
+        X,
+        y,
+        test_size=test_size,
+        stratify=y,
+        random_state=random_state
+    )
+
+    X_train, X_val, y_train, y_val = train_test_split(
+        X_train_val,
+        y_train_val,
+        test_size=val_size,
+        stratify=y_train_val,
+        random_state=random_state
+    )
+
+    scaler = StandardScaler()
+
+    X_train_scaled = scaler.fit_transform(X_train)
+    X_val_scaled = scaler.transform(X_val)
+    X_test_scaled = scaler.transform(X_test)
+
+    model = RandomForestClassifier(
+        n_estimators=200,
+        random_state=random_state,
+        class_weight="balanced",
+        n_jobs=-1
+    )
+
+    model.fit(X_train_scaled, y_train)
+
+    y_train_pred = model.predict(X_train_scaled)
+    y_val_pred = model.predict(X_val_scaled)
+    y_test_pred = model.predict(X_test_scaled)
+
+    metrics = {
+        "train": {
+            "accuracy": accuracy_score(y_train, y_train_pred),
+            "report": classification_report(y_train, y_train_pred, output_dict=True),
+            "y_true": y_train,
+            "y_pred": y_train_pred,
+            "X": X_train_scaled,
+        },
+        "validation": {
+            "accuracy": accuracy_score(y_val, y_val_pred),
+            "report": classification_report(y_val, y_val_pred, output_dict=True),
+            "y_true": y_val,
+            "y_pred": y_val_pred,
+            "X": X_val_scaled,
+        },
+        "test": {
+            "accuracy": accuracy_score(y_test, y_test_pred),
+            "report": classification_report(y_test, y_test_pred, output_dict=True),
+            "y_true": y_test,
+            "y_pred": y_test_pred,
+            "X": X_test_scaled,
+        }
+    }
+
+    feature_names = X.columns.tolist()
+
+    return model, scaler, feature_names, metrics
