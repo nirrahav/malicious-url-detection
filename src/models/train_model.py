@@ -55,45 +55,6 @@ def prepare_features(
     return X_full, scaler
 
 
-def train_model(
-    X,
-    y,
-    test_size: float = 0.2,
-    random_state: int = 42
-):
-    """
-    Splits the data, trains a RandomForest model and evaluates it.
-
-    Args:
-        X: Feature matrix.
-        y: Labels.
-
-    Returns:
-        model, metrics dict
-    """
-
-    X_train, X_test, y_train, y_test = train_test_split(
-        X, y, test_size=test_size, random_state=random_state
-    )
-
-    model = RandomForestClassifier(
-        n_estimators=30,
-        max_depth=20,
-        n_jobs=-1,
-        random_state=42,
-        class_weight="balanced"
-    )
-
-    model.fit(X_train, y_train)
-
-    y_pred = model.predict(X_test)
-
-    metrics = {
-        "accuracy": accuracy_score(y_test, y_pred),
-        "report": classification_report(y_test, y_pred, output_dict=True)
-    }
-
-    return model, metrics, X_train, X_test, y_train, y_test
 
 
 def train_model_with_validation(

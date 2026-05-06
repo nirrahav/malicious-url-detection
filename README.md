@@ -13,6 +13,8 @@ This repository contains a pipeline for detecting malicious URLs and classifying
 - `src/models/evaluate_model.py` - Model evaluation helpers for reports, confusion matrices, feature names, and SHAP values.
 - `src/visualization/plots.py` - Plotting utilities for confusion matrices, feature importance, and SHAP summaries.
 
+> **Note:** The dataset is not included in this repository. The notebook downloads the raw data from Kaggle at runtime.
+
 ## Requirements
 
 Install dependencies with:
