@@ -1,4 +1,5 @@
 import matplotlib.pyplot as plt
+import numpy as np
 import shap
 
 
@@ -59,8 +60,7 @@ def plot_shap_summary(
     Plots SHAP summary plot for a specific class in multiclass classification.
     Supports both old and new SHAP output formats.
     """
-    import numpy as np
-    import shap
+
 
     class_index = list(model.classes_).index(class_name)
 
