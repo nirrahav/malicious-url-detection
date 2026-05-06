@@ -56,13 +56,29 @@ def plot_shap_summary(
     max_display=20
 ):
     """
-    Plots SHAP summary plot for a multiclass model.
+    Plots SHAP summary plot for a specific class in multiclass classification.
+    Supports both old and new SHAP output formats.
     """
+    import numpy as np
+    import shap
 
     class_index = list(model.classes_).index(class_name)
 
+    if isinstance(shap_values, list):
+        class_shap_values = shap_values[class_index]
+    else:
+        shap_values = np.asarray(shap_values)
+
+        if shap_values.ndim == 3:
+            class_shap_values = shap_values[:, :, class_index]
+        else:
+            class_shap_values = shap_values
+
+    print("X_sample shape:", X_sample.shape)
+    print("SHAP class shape:", class_shap_values.shape)
+
     shap.summary_plot(
-        shap_values[class_index],
+        class_shap_values,
         X_sample,
         feature_names=feature_names,
         max_display=max_display
