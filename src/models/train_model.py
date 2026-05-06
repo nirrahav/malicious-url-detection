@@ -213,9 +213,24 @@ def train_model_with_validation(
     }
 
     metrics = {
-        "train": train_metrics,
-        "validation": val_metrics,
-        "test": test_metrics
+        "train": {
+            "accuracy": train_metrics["accuracy"],
+            "report": train_metrics["report"],
+            "y_true": y_train,
+            "y_pred": y_train_pred
+        },
+        "validation": {
+            "accuracy": val_metrics["accuracy"],
+            "report": val_metrics["report"],
+            "y_true": y_val,
+            "y_pred": y_val_pred
+        },
+        "test": {
+            "accuracy": test_metrics["accuracy"],
+            "report": test_metrics["report"],
+            "y_true": y_test,
+            "y_pred": y_test_pred
+        }
     }
 
     vectorizers = {
