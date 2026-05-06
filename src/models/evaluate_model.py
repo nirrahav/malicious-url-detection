@@ -96,7 +96,14 @@ def sample_for_shap(
 ):
     """
     Samples rows for SHAP analysis.
+    Supports sparse matrices.
     """
+    import numpy as np
+    from scipy.sparse import issparse
+
+    if issparse(X):
+        X = X.tocsr()
+
     rng = np.random.default_rng(random_state)
 
     indices = rng.choice(
